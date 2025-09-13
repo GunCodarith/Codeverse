@@ -1,3 +1,4 @@
 @echo off
-python "%~dp0cmd_G06_TP.py"
+python "%~dp0cmd_G08_TP.py"
 pause
+
