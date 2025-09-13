@@ -1,0 +1,9 @@
+1,Caramel Milk Pudding     ,50,20
+2,Berry Panna Cotta        ,45,20
+3,coconut cream pie        ,50,20
+4,red velvet cake          ,60,20
+5,Chocolate Banana Muffins ,35,20
+6,Flat Croissant           ,45,20
+7,Vegan Brownies           ,45,20
+8,Gingerbread Cookies      ,25,20
+9,Matcha moji Egg tart     ,40,20
