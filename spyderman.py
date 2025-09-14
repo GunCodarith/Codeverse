@@ -13,20 +13,41 @@ import sys
 # Product class (คลาสสินค้า)
 # -------------------------------
 class Product:
+    """Represents a product in the vending machine."""
+
     def __init__(self, name: str, price: int, stock: int):
+        """
+        Initialize a new product.
+
+        Args:
+            name (str): Product name.
+            price (int): Price in Baht.
+            stock (int): Initial stock quantity.
+        """
         self.name = name
         self.price = price
         self.stock = stock
 
     def __str__(self):
+        """Return a string representation of the product."""
         return f"{self.name} Price {self.price} Baht (Stock {self.stock})"
 
-    def is_available(self):
-        # ตรวจสอบว่าสินค้ามีคงเหลือหรือไม่
+    def is_available(self) -> bool:
+        """
+        Check if the product is available in stock.
+
+        Returns:
+            bool: True if stock > 0, else False.
+        """
         return self.stock > 0
 
-    def buy(self):
-        # ลดจำนวนสินค้าลง 1 เมื่อซื้อสำเร็จ
+    def buy(self) -> bool:
+        """
+        Decrease stock by 1 if available.
+
+        Returns:
+            bool: True if purchase successful, False if out of stock.
+        """
         if self.is_available():
             self.stock -= 1
             return True
@@ -37,18 +58,35 @@ class Product:
 # Cash manager class (จัดการเงิน)
 # -------------------------------
 class CashManager:
+    """Manages cash for accepting payments and giving change."""
+
     # ชนิดเงินที่รองรับ
     DENOMINATIONS = [1000, 500, 100, 50, 20, 10, 5, 2, 1]
 
     def __init__(self):
+        """Initialize with an empty wallet."""
         self.cash: Dict[int, int] = {}
 
     def add(self, denom: int, count: int):
-        # เพิ่มจำนวนธนบัตร/เหรียญเข้าไป
+        """
+        Add a given quantity of a denomination to the wallet.
+
+        Args:
+            denom (int): Denomination value.
+            count (int): Quantity to add.
+        """
         self.cash[denom] = self.cash.get(denom, 0) + count
 
     def make_change(self, amount: int):
-        # พยายามทอนเงินจากชนิดเงินที่มีอยู่
+        """
+        Attempt to give change for a given amount using available cash.
+
+        Args:
+            amount (int): Amount to change.
+
+        Returns:
+            dict[int, int] | None: A dict of denomination:count if possible, else None.
+        """
         result = {}
         for d in self.DENOMINATIONS:
             while amount >= d and self.cash.get(d, 0) > 0:
@@ -64,8 +102,19 @@ class CashManager:
 # File manager class (จัดการไฟล์ .txt)
 # -------------------------------
 class FileManager:
+    """Handles file operations for products and wallet."""
+
     @staticmethod
-    def load_goods(file="Goods.txt"):
+    def load_goods(file="Goods.txt") -> Dict[int, Product]:
+        """
+        Load product data from a file.
+
+        Args:
+            file (str): File path.
+
+        Returns:
+            dict[int, Product]: Dictionary of slot -> Product.
+        """
         products = {}
         if not os.path.exists(file):
             return products
@@ -82,12 +131,28 @@ class FileManager:
 
     @staticmethod
     def save_goods(products: Dict[int, Product], file="Goods.txt"):
+        """
+        Save product data to a file.
+
+        Args:
+            products (dict[int, Product]): Dictionary of slot -> Product.
+            file (str): File path.
+        """
         with open(file, "w", encoding="utf-8") as f:
             for slot, p in products.items():
                 f.write(f"{slot},{p.name},{p.price},{p.stock}\n")
 
     @staticmethod
-    def load_wallet(file="Wallet.txt"):
+    def load_wallet(file="Wallet.txt") -> Dict[int, int]:
+        """
+        Load wallet data from a file.
+
+        Args:
+            file (str): File path.
+
+        Returns:
+            dict[int, int]: Dictionary of denomination -> count.
+        """
         cash = {}
         if not os.path.exists(file):
             return cash
@@ -104,6 +169,13 @@ class FileManager:
 
     @staticmethod
     def save_wallet(cash: Dict[int, int], file="Wallet.txt"):
+        """
+        Save wallet data to a file.
+
+        Args:
+            cash (dict[int, int]): Dictionary of denomination -> count.
+            file (str): File path.
+        """
         with open(file, "w", encoding="utf-8") as f:
             for d, c in cash.items():
                 f.write(f"{d},{c}\n")
@@ -113,21 +185,37 @@ class FileManager:
 # Vending Machine class (เครื่องขายสินค้า)
 # -------------------------------
 class VendingMachine:
+    """Represents the vending machine with product and cash management."""
+
     def __init__(self, password="1234"):
+        """
+        Initialize vending machine with admin password.
+
+        Args:
+            password (str): Admin password.
+        """
         self.password = password
         self.products = FileManager.load_goods()
         self.cash_mgr = CashManager()
         self.cash_mgr.cash = FileManager.load_wallet()
 
     def format_cash(self, cash: Dict[int, int]) -> str:
-        # แสดงเงินทอนหรือคืนเงินเป็นข้อความ
+        """
+        Format cash dictionary into readable text.
+
+        Args:
+            cash (dict[int, int]): Dictionary of denomination -> count.
+
+        Returns:
+            str: Formatted string.
+        """
         lines = []
         for d in sorted(cash.keys(), reverse=True):
             lines.append(f"  {d} Baht x {cash[d]}")
         return "\n".join(lines) if lines else "  -"
 
     def show_products(self):
-        # แสดงสินค้าเป็นตาราง
+        """Display the product list in tabular format."""
         print("\n--- Product List ---")
         print(f"{'Slot':<4}{'Name':<12}{'Price':<8}{'Stock':<8}{'Status':<8}")
         print("-" * 45)
@@ -141,7 +229,7 @@ class VendingMachine:
         print("(e) Exit")
 
     def buy_menu(self):
-        # เมนูซื้อสินค้า
+        """Handle user product purchase menu."""
         while True:
             self.show_products()
             choice = input("Select product slot: ")
@@ -155,7 +243,12 @@ class VendingMachine:
             self.process_purchase(self.products[int(choice)])
 
     def process_purchase(self, product: Product):
-        # ขั้นตอนการซื้อสินค้า
+        """
+        Process the purchase of a given product.
+
+        Args:
+            product (Product): Product to be purchased.
+        """
         total = 0
         inserted = {}
 
@@ -239,7 +332,7 @@ class VendingMachine:
         FileManager.save_wallet(self.cash_mgr.cash)
 
     def admin_menu(self):
-        # เมนูแอดมิน
+        """Handle admin menu (setup goods, wallet, exit)."""
         pwd = input("Enter admin password: ")
         if pwd != self.password:
             print("Wrong password")
@@ -258,7 +351,7 @@ class VendingMachine:
                 break
 
     def setup_goods(self):
-        # ตั้งค่าสินค้าใหม่ทั้งหมด
+        """Setup products in all slots."""
         self.products.clear()
         for i in range(1, 10):
             name = input(f"Slot {i} product name (empty=skip): ")
@@ -276,7 +369,7 @@ class VendingMachine:
         FileManager.save_goods(self.products)
 
     def setup_wallet(self):
-        # ตั้งค่าเงินใหม่ทั้งหมด
+        """Setup wallet with cash quantities."""
         for d in CashManager.DENOMINATIONS:
             try:
                 cnt = int(input(f"Quantity of {d} Baht: "))
@@ -286,7 +379,7 @@ class VendingMachine:
         FileManager.save_wallet(self.cash_mgr.cash)
 
     def shutdown(self):
-        # ปิดระบบ
+        """Shutdown the system (requires admin password)."""
         pwd = input("Enter password to shutdown: ")
         if pwd == self.password:
             print("System shutdown")
@@ -295,7 +388,7 @@ class VendingMachine:
             print("Wrong password")
 
     def run(self):
-        # เมนูหลัก
+        """Run the main vending machine program loop."""
         while True:
             print("\n--- Main Menu ---")
             print("(b) Buy product")
