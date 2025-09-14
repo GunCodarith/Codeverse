@@ -8,6 +8,7 @@ import sys
 # - Comments in Thai (อธิบายการทำงาน)
 # ===============================================================
 
+
 # -------------------------------
 # Product class (คลาสสินค้า)
 # -------------------------------
@@ -148,27 +149,40 @@ class VendingMachine:
                 break
             if not choice.isdigit() or int(choice) not in self.products:
                 print("\n[Failed] Invalid product selection (case 3: Others)")
+                print("Refund 0 Baht:")
+                print(self.format_cash({}))
                 continue
             self.process_purchase(self.products[int(choice)])
 
     def process_purchase(self, product: Product):
         # ขั้นตอนการซื้อสินค้า
-        if not product.is_available():
-            print(f"\n[Failed] {product.name} is out of stock (case 1)")
-            return
-
-        print(f"\nSelected {product.name}, Price {product.price} Baht")
         total = 0
         inserted = {}
 
+        # เคสสินค้าหมด
+        if not product.is_available():
+            print(f"\n[Failed] {product.name} is out of stock (case 1)")
+            print(f"Product: {product.name}")
+            print(f"Price: {product.price} Baht")
+            print(f"Paid: {total} Baht")
+            print("Refund 0 Baht:")
+            print(self.format_cash({}))
+            return
+
+        print(f"\nSelected {product.name}, Price {product.price} Baht")
+
+        # วนรับเงิน
         while total < product.price:
-            money = input(f"Insert cash (Need {product.price - total} Baht, c=Cancel): ")
+            money = input(
+                f"Insert cash (Need {product.price - total} Baht, c=Cancel): "
+            )
             if money == "c":
-                if total > 0:
-                    print("\n[Purchase Canceled] Return money:")
-                    print(self.format_cash(inserted))
-                else:
-                    print("\n[Purchase Canceled] No cash inserted")
+                print("\n[Purchase Canceled]")
+                print(f"Product: {product.name}")
+                print(f"Price: {product.price} Baht")
+                print(f"Paid: {total} Baht")
+                print(f"Refund {total} Baht:")
+                print(self.format_cash(inserted))
                 return
             try:
                 m = int(money)
@@ -178,9 +192,19 @@ class VendingMachine:
                     print(f"Total inserted: {total} Baht")
                 else:
                     print("\n[Failed] Unsupported denomination (case 3: Others)")
+                    print(f"Product: {product.name}")
+                    print(f"Price: {product.price} Baht")
+                    print(f"Paid: {total} Baht")
+                    print(f"Refund {total} Baht:")
+                    print(self.format_cash(inserted))
                     return
             except:
                 print("\n[Failed] Invalid input (case 3: Others)")
+                print(f"Product: {product.name}")
+                print(f"Price: {product.price} Baht")
+                print(f"Paid: {total} Baht")
+                print(f"Refund {total} Baht:")
+                print(self.format_cash(inserted))
                 return
 
         # บันทึกเงินเข้าตู้
@@ -194,6 +218,9 @@ class VendingMachine:
             change = self.cash_mgr.make_change(change_amt)
             if change is None:
                 print(f"\n[Failed] Cannot give change (case 2)")
+                print(f"Product: {product.name}")
+                print(f"Price: {product.price} Baht")
+                print(f"Paid: {total} Baht")
                 print(f"Refund {total} Baht:")
                 print(self.format_cash(inserted))
                 return
@@ -238,7 +265,10 @@ class VendingMachine:
             if name == "":
                 continue
             try:
-                price = int(input("Price: "))
+                price = int(input("Price (10-100): "))
+                if price < 10 or price > 100:
+                    print("Invalid price (must be 10-100). Skipped")
+                    continue
                 stock = int(input("Quantity: "))
                 self.products[i] = Product(name, price, stock)
             except:
@@ -284,9 +314,5 @@ class VendingMachine:
 # Main program
 # -------------------------------
 if __name__ == "__main__":
-    try:
-        print("🚀 Vending Machine started (Run in Spyder Console)")
-        vm = VendingMachine(password="1234")
-        vm.run()
-    except KeyboardInterrupt:
-        print("\nProgram stopped manually.")
+    vm = VendingMachine(password="1234")
+    vm.run()
