@@ -4,7 +4,7 @@ import sys
 
 # ===============================================================
 # 🏪 VENDING MACHINE PROGRAM
-# - All code/messages in English
+# - Simple English docstrings for university submission
 # ===============================================================
 
 
@@ -12,20 +12,29 @@ import sys
 # Product class
 # -------------------------------
 class Product:
-    """Represents a product in the vending machine."""
+    """This class is for a product in the vending machine."""
 
     def __init__(self, name: str, price: int, stock: int):
+        """
+        Create a product.
+        name : product name
+        price : product price
+        stock : how many in stock
+        """
         self.name = name
         self.price = price
         self.stock = stock
 
     def __str__(self):
+        """Show product as text."""
         return f"{self.name} Price {self.price} Baht (Stock {self.stock})"
 
     def is_available(self) -> bool:
+        """Return True if product has stock."""
         return self.stock > 0
 
     def buy(self) -> bool:
+        """Reduce stock by 1 if available. Return True if bought."""
         if self.is_available():
             self.stock -= 1
             return True
@@ -36,17 +45,23 @@ class Product:
 # CashManager class
 # -------------------------------
 class CashManager:
-    """Handles cash for accepting payments and giving change."""
+    """This class manages money for paying and giving change."""
 
     DENOMINATIONS = [1000, 500, 100, 50, 20, 10, 5, 2, 1]
 
     def __init__(self):
+        """Create an empty cash storage."""
         self.cash: Dict[int, int] = {}
 
     def add(self, denom: int, count: int):
+        """Add some money to machine."""
         self.cash[denom] = self.cash.get(denom, 0) + count
 
     def make_change(self, amount: int):
+        """
+        Try to give change.
+        Return dictionary of bills or None if not enough.
+        """
         result = {}
         for d in self.DENOMINATIONS:
             while amount >= d and self.cash.get(d, 0) > 0:
@@ -62,10 +77,11 @@ class CashManager:
 # FileManager class
 # -------------------------------
 class FileManager:
-    """Handles file operations for products and wallet."""
+    """This class reads and writes product and wallet files."""
 
     @staticmethod
     def load_goods(file="Goods.txt") -> Dict[int, Product]:
+        """Load products from a file."""
         products = {}
         if not os.path.exists(file):
             return products
@@ -82,12 +98,14 @@ class FileManager:
 
     @staticmethod
     def save_goods(products: Dict[int, Product], file="Goods.txt"):
+        """Save products to a file."""
         with open(file, "w", encoding="utf-8") as f:
             for slot, p in products.items():
                 f.write(f"{slot},{p.name},{p.price},{p.stock}\n")
 
     @staticmethod
     def load_wallet(file="Wallet.txt") -> Dict[int, int]:
+        """Load wallet from a file."""
         cash = {}
         if not os.path.exists(file):
             return cash
@@ -104,6 +122,7 @@ class FileManager:
 
     @staticmethod
     def save_wallet(cash: Dict[int, int], file="Wallet.txt"):
+        """Save wallet to a file."""
         with open(file, "w", encoding="utf-8") as f:
             for d, c in cash.items():
                 f.write(f"{d},{c}\n")
@@ -113,21 +132,24 @@ class FileManager:
 # VendingMachine class
 # -------------------------------
 class VendingMachine:
-    """Represents the vending machine with product and cash management."""
+    """This class is the vending machine system."""
 
     def __init__(self, password="1234"):
+        """Create vending machine with password, products, and cash."""
         self.password = password
         self.products = FileManager.load_goods()
         self.cash_mgr = CashManager()
         self.cash_mgr.cash = FileManager.load_wallet()
 
     def format_cash(self, cash: Dict[int, int]) -> str:
+        """Return cash as text."""
         lines = []
         for d in sorted(cash.keys(), reverse=True):
             lines.append(f"  {d} Baht x {cash[d]}")
         return "\n".join(lines) if lines else "  -"
 
     def show_products(self):
+        """Show all products on screen."""
         print("=" * 61)
         print("🛒 PRODUCT LIST 🛒")
         print("=" * 61)
@@ -144,6 +166,7 @@ class VendingMachine:
         print("(e) Exit")
 
     def buy_menu(self):
+        """Menu for buying products."""
         while True:
             self.show_products()
             choice = input("🎯 Select product slot: ")
@@ -155,15 +178,14 @@ class VendingMachine:
             self.process_purchase(self.products[int(choice)])
 
     def collect_cash(self, product: Product):
-        """Collect cash from user. Returns total and dictionary of denominations."""
+        """Collect money from user. Return total and dict."""
         total = 0
         inserted = {}
         while total < product.price:
             money = input(
-                f"💰 Insert cash (Need {product.price - total} Baht, c=Cancel): "
+                f"💰 Insert cash (Need {product.price - total} Baht, c=Cancel Payment): "
             )
             if money == "c":
-                # Case 3: Cancel
                 return None, inserted
             try:
                 m = int(money)
@@ -172,17 +194,15 @@ class VendingMachine:
                     total += m
                     print(f"💳 Total inserted: {total} Baht")
                 else:
-                    # Case 3: Unsupported denomination
                     print("\n❌ [FAILED] Unsupported denomination")
                     return None, inserted
             except:
-                # Case 3: Invalid input
                 print("\n❌ [FAILED] Invalid input")
                 return None, inserted
         return total, inserted
 
     def process_purchase(self, product: Product):
-        # Case 1: Out of stock
+        """Process buying a product."""
         if not product.is_available():
             print(f"\n❌ [FAILED] {product.name} is out of stock")
             print(f"📦 Product: {product.name}")
@@ -195,7 +215,6 @@ class VendingMachine:
         print(f"\n🎯 Selected {product.name}, Price {product.price} Baht")
         total, inserted = self.collect_cash(product)
 
-        # Case 3: Cancel / invalid input / unsupported denomination
         if total is None:
             print(f"\n🚫 [PURCHASE CANCELED]")
             print(f"📦 Product: {product.name}")
@@ -206,14 +225,12 @@ class VendingMachine:
             print(self.format_cash(inserted))
             return
 
-        # Add cash to machine
         for d, c in inserted.items():
             self.cash_mgr.add(d, c)
 
         change_amt = total - product.price
         change = {}
 
-        # Case 2: Cannot give change
         if change_amt > 0:
             change = self.cash_mgr.make_change(change_amt)
             if change is None:
@@ -223,12 +240,10 @@ class VendingMachine:
                 print(f"💳 Paid: {total} Baht")
                 print(f"💰 Refund {total} Baht:")
                 print(self.format_cash(inserted))
-                # Remove added cash
                 for d, c in inserted.items():
                     self.cash_mgr.cash[d] -= c
                 return
 
-        # Case 0: Purchase successful
         product.buy()
         print("\n🎉 [PURCHASE SUCCESSFUL!] 🎉")
         print(f"📦 Product: {product.name}")
@@ -242,6 +257,7 @@ class VendingMachine:
         FileManager.save_wallet(self.cash_mgr.cash)
 
     def maintenance(self):
+        """Menu for maintenance."""
         pwd = input("🔐 Enter admin password: ")
         if pwd != self.password:
             print("❌ Wrong password")
@@ -265,6 +281,7 @@ class VendingMachine:
                 break
 
     def setup_goods(self):
+        """Setup products in machine."""
         print("\n📦 SETTING UP PRODUCTS...")
         self.products.clear()
         for i in range(1, 10):
@@ -281,6 +298,7 @@ class VendingMachine:
         print("💾 Products saved!")
 
     def setup_wallet(self):
+        """Setup cash in machine."""
         print("\n💰 SETTING UP WALLET...")
         for d in CashManager.DENOMINATIONS:
             try:
@@ -292,6 +310,7 @@ class VendingMachine:
         print("💾 Wallet saved!")
 
     def shutdown(self):
+        """Shutdown the machine if password correct."""
         pwd = input("🔐 Enter password to shutdown: ")
         if pwd == self.password:
             print("🔌 System shutdown")
@@ -300,6 +319,7 @@ class VendingMachine:
             print("❌ Wrong password")
 
     def run(self):
+        """Run the vending machine main menu."""
         while True:
             print("\n" + "=" * 30)
             print("🏠 MAIN MENU")
