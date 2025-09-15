@@ -5,12 +5,11 @@ import sys
 # ===============================================================
 # 🏪 VENDING MACHINE PROGRAM
 # - All code/messages in English
-# - Comments in Thai (อธิบายการทำงาน)
 # ===============================================================
 
 
 # -------------------------------
-# Product class (คลาสสินค้า)
+# Product class
 # -------------------------------
 class Product:
     """Represents a product in the vending machine."""
@@ -34,9 +33,11 @@ class Product:
 
 
 # -------------------------------
-# CashManager class (จัดการเงิน)
+# CashManager class
 # -------------------------------
 class CashManager:
+    """Handles cash for accepting payments and giving change."""
+
     DENOMINATIONS = [1000, 500, 100, 50, 20, 10, 5, 2, 1]
 
     def __init__(self):
@@ -52,16 +53,17 @@ class CashManager:
                 amount -= d
                 self.cash[d] -= 1
                 result[d] = result.get(d, 0) + 1
-
         if amount == 0:
             return result
         return None
 
 
 # -------------------------------
-# FileManager class (จัดการไฟล์)
+# FileManager class
 # -------------------------------
 class FileManager:
+    """Handles file operations for products and wallet."""
+
     @staticmethod
     def load_goods(file="Goods.txt") -> Dict[int, Product]:
         products = {}
@@ -111,6 +113,8 @@ class FileManager:
 # VendingMachine class
 # -------------------------------
 class VendingMachine:
+    """Represents the vending machine with product and cash management."""
+
     def __init__(self, password="1234"):
         self.password = password
         self.products = FileManager.load_goods()
@@ -151,7 +155,7 @@ class VendingMachine:
             self.process_purchase(self.products[int(choice)])
 
     def collect_cash(self, product: Product):
-        """รับเงินจากผู้ใช้ คืน dict เงินและยอดรวม"""
+        """Collect cash from user. Returns total and dictionary of denominations."""
         total = 0
         inserted = {}
         while total < product.price:
@@ -159,6 +163,7 @@ class VendingMachine:
                 f"💰 Insert cash (Need {product.price - total} Baht, c=Cancel): "
             )
             if money == "c":
+                # Case 3: Cancel
                 return None, inserted
             try:
                 m = int(money)
@@ -167,37 +172,63 @@ class VendingMachine:
                     total += m
                     print(f"💳 Total inserted: {total} Baht")
                 else:
-                    print("❌ Unsupported denomination")
+                    # Case 3: Unsupported denomination
+                    print("\n❌ [FAILED] Unsupported denomination")
+                    return None, inserted
             except:
-                print("❌ Invalid input")
+                # Case 3: Invalid input
+                print("\n❌ [FAILED] Invalid input")
+                return None, inserted
         return total, inserted
 
     def process_purchase(self, product: Product):
+        # Case 1: Out of stock
         if not product.is_available():
-            print(f"\n❌ {product.name} is out of stock")
+            print(f"\n❌ [FAILED] {product.name} is out of stock")
+            print(f"📦 Product: {product.name}")
+            print(f"💰 Price: {product.price} Baht")
+            print(f"💳 Paid: 0 Baht")
+            print("💰 Refund 0 Baht:")
+            print(self.format_cash({}))
             return
 
         print(f"\n🎯 Selected {product.name}, Price {product.price} Baht")
         total, inserted = self.collect_cash(product)
+
+        # Case 3: Cancel / invalid input / unsupported denomination
         if total is None:
-            print("\n🚫 Purchase canceled, refunding:")
+            print(f"\n🚫 [PURCHASE CANCELED]")
+            print(f"📦 Product: {product.name}")
+            print(f"💰 Price: {product.price} Baht")
+            paid = sum([k * v for k, v in inserted.items()])
+            print(f"💳 Paid: {paid} Baht")
+            print(f"💰 Refund {paid} Baht:")
             print(self.format_cash(inserted))
             return
 
+        # Add cash to machine
         for d, c in inserted.items():
             self.cash_mgr.add(d, c)
 
         change_amt = total - product.price
         change = {}
+
+        # Case 2: Cannot give change
         if change_amt > 0:
             change = self.cash_mgr.make_change(change_amt)
             if change is None:
-                print("❌ Cannot give change, refunding:")
+                print(f"\n❌ [FAILED] Cannot give change")
+                print(f"📦 Product: {product.name}")
+                print(f"💰 Price: {product.price} Baht")
+                print(f"💳 Paid: {total} Baht")
+                print(f"💰 Refund {total} Baht:")
                 print(self.format_cash(inserted))
+                # Remove added cash
                 for d, c in inserted.items():
                     self.cash_mgr.cash[d] -= c
                 return
 
+        # Case 0: Purchase successful
         product.buy()
         print("\n🎉 [PURCHASE SUCCESSFUL!] 🎉")
         print(f"📦 Product: {product.name}")
