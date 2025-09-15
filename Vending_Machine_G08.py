@@ -347,8 +347,8 @@ class VendingMachine:
         FileManager.save_goods(self.products)
         FileManager.save_wallet(self.cash_mgr.cash)
 
-    def admin_menu(self):
-        """Handle admin menu (setup goods, wallet, exit)."""
+    def Maintenance(self):
+        """Handle Maintenance mode (setup goods, wallet, exit)."""
         pwd = input("🔐 Enter admin password: ")
         if pwd != self.password:
             print("❌ Wrong password")
@@ -356,7 +356,7 @@ class VendingMachine:
 
         while True:
             print("\n" + "=" * 30)
-            print("👨 ADMIN MENU")
+            print("🛠️  Maintenance Menu")
             print("=" * 30)
             print("(g) 📦 Setup Goods")
             print("(w) 💰 Setup Wallet")
@@ -417,7 +417,6 @@ class VendingMachine:
         pwd = input("🔐 Enter password to shutdown: ")
         if pwd == self.password:
             print("🔌 System shutdown")
-            print("👋 Goodbye!")
             sys.exit()
         else:
             print("❌ Wrong password")
@@ -429,8 +428,8 @@ class VendingMachine:
             print("\n" + "=" * 30)
             print("🏠 MAIN MENU")
             print("=" * 30)
-            print("(b) 🛒 Buy product")
-            print("(m) 👨 Admin mode")
+            print("(b) 🛒 Buy Menu")
+            print("(m) 🛠️  Mantenance")
             print("(s) 🔌 Shutdown")
             print("=" * 30)
 
@@ -438,7 +437,7 @@ class VendingMachine:
             if cmd == "b":
                 self.buy_menu()
             elif cmd == "m":
-                self.admin_menu()
+                self.maintenance()
             elif cmd == "s":
                 self.shutdown()
 
