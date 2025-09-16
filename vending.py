@@ -200,7 +200,7 @@ class VendingMachine:
             print("🏠 MAIN MENU")
             print("=" * 30)
             print("(b) 🛒 Buy Menu")
-            print("(m) 🛠️  Maintenance")
+            print("(m) 🛠️ Maintenance")
             print("(s) 🔌 Shutdown")
             print("=" * 30)
             cmd = input("🎯 Select: ")
@@ -210,3 +210,4 @@ class VendingMachine:
                 self.maintenance()
             elif cmd == "s":
                 self.shutdown()
+
